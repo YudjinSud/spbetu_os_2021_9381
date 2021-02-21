@@ -185,8 +185,8 @@ GET_VERSRION PROC NEAR
 		add si, 3
 		mov al, ah
 		call BYTE_TO_DEC
-		pop ax
 		pop si
+		pop ax
 ;OEM
 	mov al, bh
 	lea si, OEM
