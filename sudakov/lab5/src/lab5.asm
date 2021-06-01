@@ -1,11 +1,3 @@
-AStack SEGMENT STACK
-	DW 12 DUP(?)
-AStack ENDS
-	
-DATA SEGMENT
-	erroraload	DB	"ERROR: already set",0Dh,0Ah, '$'
-DATA ENDS
-
 CODE SEGMENT
 	ASSUME CS:CODE,DS:DATA,SS:AStack
 key1 db 1Eh 					;a
@@ -16,7 +8,21 @@ oldpsp	DW	0
 unloadid	DB	0
 oldvec dd ?
 
+oldss 		DW	0
+oldsp 		DW	0
+oldax 		DW	0
+interrupt_stack DB 128 DUP(0)
+
+
 ROUT PROC FAR
+
+	mov oldss, ss
+	mov oldsp, sp
+	mov oldax, ax
+	mov ax, seg interrupt_stack
+	mov ss, ax
+	mov sp, offset ROUT
+
 	push ax
 	push es
 	push cx
@@ -30,6 +36,10 @@ ROUT PROC FAR
 	pop cx
 	pop es
 	pop ax
+	
+	mov sp, oldsp
+	mov ss, oldss
+	mov ax, oldax
 
 	jmp cs:oldvec
 
@@ -112,6 +122,10 @@ ROUT PROC FAR
 	mov AL,20H
 	out 20H,AL
 
+	mov sp, oldsp
+	mov ss, oldss
+	mov ax, oldax
+
 	IRET
 ROUT ENDP
 
@@ -124,6 +138,8 @@ printsymb	PROC	NEAR
 	int 10h 
 	ret
 printsymb	ENDP
+
+END_CODE:
 
 tailid	PROC NEAR 
 	push dx
@@ -245,8 +261,16 @@ exit:
 
 MAIN	ENDP
 DW 20 DUP(?)
-END_CODE:
 CODE ENDS
+
+AStack SEGMENT STACK
+	DW 128 DUP(?)
+AStack ENDS
+	
+DATA SEGMENT
+	erroraload	DB	"ERROR: already set",0Dh,0Ah, '$'
+DATA ENDS
+
 END MAIN
 	
 
